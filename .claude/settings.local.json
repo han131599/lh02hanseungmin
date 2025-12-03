@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx prisma init)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(curl:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma:*)",
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then grep -E \"^JWT_SECRET=\" .env)",
+      "Bash(else echo \".env file not found\")",
+      "Bash(fi)",
+      "Bash(rm:*)",
+      "Bash(npm run db:generate:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run admin:create:*)",
+      "Bash(npx tsx:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

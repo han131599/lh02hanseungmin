@@ -1,0 +1,260 @@
+// PT Buddy - Prisma Schema
+// PT 트레이너 회원 관리 + 보조제 추천 시스템
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =====================================================
+// PT 관리 모델 (기존)
+// =====================================================
+
+/// 트레이너 정보
+model Trainer {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String        @unique
+  password       String        // bcrypt 해싱
+  name           String
+  phone          String?
+  maxMembers     Int           @default(50) @map("max_members") // 최대 관리 가능 회원 수
+  role           String        @default("trainer") // "trainer" or "admin"
+  isActive       Boolean       @default(true) @map("is_active") // 활성화 상태
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz // 소프트 삭제 시간
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  members        Member[]
+  appointments   Appointment[]
+
+  @@index([isActive])
+  @@index([email, isActive])
+  @@map("trainers")
+}
+
+/// 회원 정보
+model Member {
+  id                    String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trainerId             String?                  @map("trainer_id") @db.Uuid // 선택적: 트레이너와 연결 시에만 사용
+  name                  String
+  email                 String                   @unique
+  password              String                   // 회원용 로그인 비밀번호 (필수)
+  phone                 String
+  birthDate             DateTime?                @map("birth_date") @db.Date
+  gender                String?                  // "male", "female"
+  role                  String                   @default("member") // "member" 고정
+  isActive              Boolean                  @default(true) @map("is_active")
+  deletedAt             DateTime?                @map("deleted_at") @db.Timestamptz // 소프트 삭제 시간
+  notes                 String?                  @db.Text // 트레이너 메모
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  trainer               Trainer?                 @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+  memberships           Membership[]
+  appointments          Appointment[]
+  supplementLogs        SupplementLog[]          // 보조제 섭취 기록
+  recommendedSupplements MemberSupplement[]      // 추천받은 보조제
+
+  @@index([trainerId])
+  @@index([trainerId, isActive])
+  @@index([email])
+  @@index([isActive])
+  @@index([email, isActive])
+  @@map("members")
+}
+
+/// 수강권 정보
+model Membership {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId          String    @map("member_id") @db.Uuid
+  name              String    // 수강권 이름 (ex: "1개월 20회권")
+  type              String    // "period" (기간제) or "session" (횟수제)
+  price             Int       // 가격
+
+  // 기간제 필드
+  startDate         DateTime? @map("start_date") @db.Date
+  endDate           DateTime? @map("end_date") @db.Date
+
+  // 횟수제 필드
+  totalSessions     Int?      @map("total_sessions")
+  remainingSessions Int?      @map("remaining_sessions")
+
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  member            Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([memberId, isActive])
+  @@map("memberships")
+}
+
+/// PT 일정
+model Appointment {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trainerId    String   @map("trainer_id") @db.Uuid
+  memberId     String   @map("member_id") @db.Uuid
+  scheduledAt  DateTime @map("scheduled_at") @db.Timestamptz
+  duration     Int      @default(60) // 분 단위
+  status       String   @default("scheduled") // "scheduled", "completed", "cancelled", "no_show"
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  trainer      Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([trainerId, scheduledAt])
+  @@index([memberId, scheduledAt])
+  @@map("appointments")
+}
+
+// =====================================================
+// 보조제 관리 모델 (신규 추가)
+// =====================================================
+
+enum SupplementCategory {
+  protein      // 단백질
+  omega3       // 오메가3
+  creatine     // 크레아틴
+  bcaa         // BCAA
+  vitamin      // 비타민/미네랄
+  preworkout   // 프리워크아웃
+  other        // 기타
+}
+
+/// 보조제 정보 (트레이너가 등록한 보조제 목록)
+model Supplement {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trainerId           String              @map("trainer_id") @db.Uuid
+  name                String              // 제품명
+  brand               String?             // 브랜드
+  category            SupplementCategory
+  dosage              String?             // 권장 복용량 (예: "1일 3회, 1회 5g")
+  timing              String?             // 섭취 시점 (예: "운동 전", "식후")
+  description         String?             @db.Text
+  productUrl          String?             @map("product_url") // 구매 링크 (쿠팡 등)
+  imageUrl            String?             @map("image_url")
+  isActive            Boolean             @default(true) @map("is_active")
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  supplementLogs      SupplementLog[]
+  memberSupplements   MemberSupplement[]  // 회원별 추천 관계
+
+  @@index([trainerId])
+  @@index([category])
+  @@map("supplements")
+}
+
+/// 회원별 보조제 추천 (트레이너가 회원에게 특정 보조제 추천)
+model MemberSupplement {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId        String              @map("member_id") @db.Uuid
+  supplementId    String              @map("supplement_id") @db.Uuid
+  recommendedBy   String              @map("recommended_by") @db.Uuid // 추천한 트레이너
+  startDate       DateTime            @default(now()) @map("start_date") @db.Date
+  endDate         DateTime?           @map("end_date") @db.Date // 섭취 종료일 (선택)
+  customDosage    String?             @map("custom_dosage") // 개인별 맞춤 용량
+  customTiming    String?             @map("custom_timing") // 개인별 맞춤 시점
+  notes           String?             @db.Text
+  isActive        Boolean             @default(true) @map("is_active")
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  member          Member              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  supplement      Supplement          @relation(fields: [supplementId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, supplementId])
+  @@index([memberId])
+  @@index([supplementId])
+  @@map("member_supplements")
+}
+
+/// 회원별 보조제 섭취 기록
+model SupplementLog {
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId        String     @map("member_id") @db.Uuid
+  supplementId    String     @map("supplement_id") @db.Uuid
+  date            DateTime   @db.Date
+  taken           Boolean    @default(false) // 복용 여부
+  notes           String?    @db.Text
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  member          Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  supplement      Supplement @relation(fields: [supplementId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, supplementId, date])
+  @@index([memberId, date])
+  @@index([supplementId])
+  @@map("supplement_logs")
+}
+
+// =====================================================
+// 비밀번호 재설정 토큰 모델
+// =====================================================
+
+/// 비밀번호 재설정용 인증 토큰 (이메일 인증)
+model PasswordResetToken {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   // 이메일 주소
+  code         String   // 6자리 인증 코드
+  role         String   // "trainer" or "member"
+  verified     Boolean  @default(false) // 인증 완료 여부
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz // 만료 시간 (10분)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([email, code, role])
+  @@index([email, verified])
+  @@map("password_reset_tokens")
+}
+
+// =====================================================
+// 쿠팡 상품 데이터 모델 (월별 캐싱)
+// =====================================================
+
+/// 쿠팡에서 가져온 보조제 상품 정보 (월별로 저장)
+model CoupangProduct {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId           String              @map("product_id") // 쿠팡 상품 ID
+  productName         String              @map("product_name")
+  productUrl          String              @map("product_url")
+  affiliateUrl        String?             @map("affiliate_url") // 파트너스 딥링크
+  productImage        String              @map("product_image")
+  productPrice        Int                 @map("product_price")
+  originalPrice       Int                 @map("original_price")
+  discountRate        Int                 @map("discount_rate")
+  isRocketDelivery    Boolean             @default(false) @map("is_rocket_delivery")
+  isFreeShipping      Boolean             @default(false) @map("is_free_shipping")
+  rating              Float               @default(0)
+  reviewCount         Int                 @default(0) @map("review_count")
+  salesCount          Int                 @default(0) @map("sales_count")
+  brand               String?
+  category            SupplementCategory  // 보조제 카테고리
+  categoryName        String?             @map("category_name")
+  month               String              // YYYY-MM 형식 (예: "2025-01")
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([productId, month])
+  @@index([category, month])
+  @@index([month])
+  @@index([category, month, salesCount])
+  @@index([category, month, reviewCount])
+  @@index([category, month, createdAt])
+  @@map("coupang_products")
+}
