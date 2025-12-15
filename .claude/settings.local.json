@@ -24,7 +24,8 @@
       "Bash(npm run admin:create:*)",
       "Bash(npx tsx:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill -9)"
+      "Bash(xargs kill -9)",
+      "Bash(aws ses get-account-sending-enabled:*)"
     ],
     "deny": [],
     "ask": []
