@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Calendar, Users, CreditCard, BarChart3, LogOut, Pill } from 'lucide-react'
+import { Calendar, Users, CreditCard, BarChart3, LogOut, Pill, MessageSquare } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: '대시보드', icon: BarChart3 },
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/dashboard/members', label: '회원 관리', icon: Users },
   { href: '/dashboard/memberships', label: '수강권', icon: CreditCard },
   { href: '/dashboard/supplements', label: '보조제 관리', icon: Pill },
+  { href: '/community', label: '커뮤니티', icon: MessageSquare },
 ]
 
 export default function DashboardNav() {

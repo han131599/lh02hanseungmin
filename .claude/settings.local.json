@@ -25,7 +25,11 @@
       "Bash(npx tsx:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill -9)",
-      "Bash(aws ses get-account-sending-enabled:*)"
+      "Bash(aws ses get-account-sending-enabled:*)",
+      "Bash(if [ -f /Users/admin/Desktop/claude-code-app/pt-buddy/.env ])",
+      "Bash(then grep -E \"^(DATABASE_URL|JWT_SECRET|DIRECT_URL)\" /Users/admin/Desktop/claude-code-app/pt-buddy/.env)",
+      "Bash(ls:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

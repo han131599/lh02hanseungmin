@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Home, Calendar, User, LogOut } from 'lucide-react'
+import { Home, Calendar, User, LogOut, MessageSquare, Dumbbell } from 'lucide-react'
 import { JWTPayload } from '@/lib/auth/jwt'
 
 export default function MemberLayoutClient({
@@ -47,16 +47,22 @@ export default function MemberLayoutClient({
                   홈
                 </Button>
               </Link>
-              <Link href="/member/schedule">
+              <Link href="/member/workouts">
                 <Button variant="ghost" size="sm">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  일정
+                  <Dumbbell className="h-4 w-4 mr-2" />
+                  운동 기록
                 </Button>
               </Link>
-              <Link href="/member/profile">
+              <Link href="/community">
+                <Button variant="ghost" size="sm">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  커뮤니티
+                </Button>
+              </Link>
+              <Link href="/member/settings">
                 <Button variant="ghost" size="sm">
                   <User className="h-4 w-4 mr-2" />
-                  프로필
+                  설정
                 </Button>
               </Link>
             </nav>

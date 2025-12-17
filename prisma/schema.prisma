@@ -61,6 +61,7 @@ model Member {
   appointments          Appointment[]
   supplementLogs        SupplementLog[]          // 보조제 섭취 기록
   recommendedSupplements MemberSupplement[]      // 추천받은 보조제
+  workoutLogs           WorkoutLog[]             // 운동 기록
 
   @@index([trainerId])
   @@index([trainerId, isActive])
@@ -257,4 +258,100 @@ model CoupangProduct {
   @@index([category, month, reviewCount])
   @@index([category, month, createdAt])
   @@map("coupang_products")
+}
+
+// =====================================================
+// 커뮤니티 모델 (게시판)
+// =====================================================
+
+/// 커뮤니티 게시글
+model CommunityPost {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String              // 게시글 제목
+  content         String              @db.Text // 게시글 내용
+  authorId        String              @map("author_id") @db.Uuid // 작성자 ID
+  authorRole      String              @map("author_role") // "trainer", "member", "admin"
+  authorName      String              @map("author_name") // 작성자 이름 (캐싱)
+  viewCount       Int                 @default(0) @map("view_count") // 조회수
+  isNotice        Boolean             @default(false) @map("is_notice") // 공지사항 여부
+  isPinned        Boolean             @default(false) @map("is_pinned") // 상단 고정 여부
+  deletedAt       DateTime?           @map("deleted_at") @db.Timestamptz // 소프트 삭제
+  deletedBy       String?             @map("deleted_by") @db.Uuid // 삭제한 관리자 ID
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  comments        CommunityComment[]
+
+  @@index([createdAt])
+  @@index([viewCount])
+  @@index([isPinned, createdAt])
+  @@index([isNotice, createdAt])
+  @@index([authorId])
+  @@index([deletedAt])
+  @@map("community_posts")
+}
+
+/// 커뮤니티 댓글
+model CommunityComment {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId          String              @map("post_id") @db.Uuid
+  content         String              @db.Text
+  authorId        String              @map("author_id") @db.Uuid
+  authorRole      String              @map("author_role") // "trainer", "member", "admin"
+  authorName      String              @map("author_name") // 작성자 이름 (캐싱)
+  deletedAt       DateTime?           @map("deleted_at") @db.Timestamptz // 소프트 삭제
+  deletedBy       String?             @map("deleted_by") @db.Uuid // 삭제한 관리자 ID
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  post            CommunityPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([authorId])
+  @@index([deletedAt])
+  @@map("community_comments")
+}
+
+// =====================================================
+// 운동 기록 모델
+// =====================================================
+
+/// 운동 종류
+enum ExerciseType {
+  chest       // 가슴
+  back        // 등
+  shoulder    // 어깨
+  arms        // 팔
+  legs        // 다리
+  abs         // 복근
+  cardio      // 유산소
+  other       // 기타
+}
+
+/// 운동 기록
+model WorkoutLog {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId        String              @map("member_id") @db.Uuid
+  date            DateTime            @db.Date
+  exerciseType    ExerciseType        @map("exercise_type")
+  exerciseName    String              @map("exercise_name") // 운동 이름 (예: "벤치프레스")
+  sets            Int                 @default(0) // 세트 수
+  reps            Int                 @default(0) // 반복 횟수
+  weight          Float               @default(0) // 중량 (kg)
+  duration        Int?                // 운동 시간 (분) - 유산소 운동용
+  distance        Float?              // 거리 (km) - 유산소 운동용
+  calories        Int?                // 소모 칼로리
+  notes           String?             @db.Text // 메모
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  member          Member              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId, date])
+  @@index([memberId, exerciseType])
+  @@index([date])
+  @@map("workout_logs")
 }
