@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth/password'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 const resetPasswordSchema = z.object({
   email: z.string().email('올바른 이메일 주소를 입력해주세요'),
   code: z.string().length(6, '인증 코드는 6자리입니다'),

@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { generateVerificationCode, sendVerificationEmail, isValidEmail } from '@/lib/email'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 const sendCodeSchema = z.object({
   email: z.string().email('올바른 이메일 주소를 입력해주세요'),
   role: z.enum(['trainer', 'member'], { message: '역할을 선택해주세요' }),

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/jwt'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 // GET - 회원별 추천된 보조제 조회
 export async function GET(request: NextRequest) {
   try {

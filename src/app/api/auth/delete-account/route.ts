@@ -4,6 +4,8 @@ import { verifyToken } from '@/lib/auth/jwt'
 import { comparePassword } from '@/lib/auth/password'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 const deleteAccountSchema = z.object({
   password: z.string().min(1, '비밀번호를 입력해주세요'),
   confirmation: z.literal('회원탈퇴', { message: '확인 문구를 정확히 입력해주세요' }),
@@ -21,7 +23,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = verifyToken(token)
+    const user = await verifyToken(token)
 
     if (!user) {
       return NextResponse.json(

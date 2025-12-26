@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth/jwt'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 // PATCH /api/members/[id] - 회원 수정
 export async function PATCH(
   request: NextRequest,

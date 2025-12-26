@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth/jwt'
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     // JWT 토큰에서 사용자 정보 추출

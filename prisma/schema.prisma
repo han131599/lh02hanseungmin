@@ -282,6 +282,7 @@ model CommunityPost {
 
   // Relations
   comments        CommunityComment[]
+  likes           CommunityPostLike[]
 
   @@index([createdAt])
   @@index([viewCount])
@@ -307,11 +308,44 @@ model CommunityComment {
 
   // Relations
   post            CommunityPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes           CommunityCommentLike[]
 
   @@index([postId, createdAt])
   @@index([authorId])
   @@index([deletedAt])
   @@map("community_comments")
+}
+
+/// 커뮤니티 게시글 공감(좋아요)
+model CommunityPostLike {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId          String              @map("post_id") @db.Uuid
+  userId          String              @map("user_id") @db.Uuid // 공감한 사용자 ID
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  post            CommunityPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("community_post_likes")
+}
+
+/// 커뮤니티 댓글 공감(좋아요)
+model CommunityCommentLike {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  commentId       String              @map("comment_id") @db.Uuid
+  userId          String              @map("user_id") @db.Uuid // 공감한 사용자 ID
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  comment         CommunityComment    @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+  @@map("community_comment_likes")
 }
 
 // =====================================================

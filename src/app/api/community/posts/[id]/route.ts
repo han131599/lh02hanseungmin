@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth/jwt'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 // 게시글 상세 조회 (조회수 증가)
 export async function GET(
   request: NextRequest,
@@ -24,10 +26,14 @@ export async function GET(
           where: {
             deletedAt: null,
           },
+          include: {
+            likes: true,
+          },
           orderBy: {
             createdAt: 'asc',
           },
         },
+        likes: true,
       },
     })
 
@@ -38,7 +44,19 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(post)
+    // 공감 수 포함
+    const responsePost = {
+      ...post,
+      likeCount: post.likes.length,
+      comments: post.comments.map(comment => ({
+        ...comment,
+        likeCount: comment.likes.length,
+        likes: undefined,
+      })),
+      likes: undefined,
+    }
+
+    return NextResponse.json(responsePost)
   } catch (error) {
     console.error('게시글 조회 오류:', error)
     return NextResponse.json(

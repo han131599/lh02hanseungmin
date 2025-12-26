@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth/jwt'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 // GET /api/appointments - 일정 목록 조회
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = verifyToken(token)
+    const user = await verifyToken(token)
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = verifyToken(token)
+    const user = await verifyToken(token)
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

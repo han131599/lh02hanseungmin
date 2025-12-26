@@ -3,6 +3,8 @@ import { getCoupangAPIClient, SUPPLEMENT_CATEGORIES, type SupplementCategoryKey 
 import prisma from '@/lib/prisma'
 import { SupplementCategory } from '@prisma/client'
 
+export const runtime = 'nodejs'
+
 type SortBy = 'latest' | 'sales' | 'reviews'
 
 /**

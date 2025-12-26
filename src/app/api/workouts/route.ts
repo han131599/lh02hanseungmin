@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/auth/jwt'
 import { z } from 'zod'
 import { ExerciseType } from '@prisma/client'
 
+export const runtime = 'nodejs'
+
 // 운동 기록 목록 조회
 export async function GET(request: NextRequest) {
   try {

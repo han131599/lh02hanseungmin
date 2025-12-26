@@ -29,7 +29,12 @@
       "Bash(if [ -f /Users/admin/Desktop/claude-code-app/pt-buddy/.env ])",
       "Bash(then grep -E \"^(DATABASE_URL|JWT_SECRET|DIRECT_URL)\" /Users/admin/Desktop/claude-code-app/pt-buddy/.env)",
       "Bash(ls:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(while read -r file)",
+      "Bash(do)",
+      "Bash(if ! grep -q \"export const runtime\" \"$file\")",
+      "Bash(then)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

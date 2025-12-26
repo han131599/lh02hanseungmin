@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 /**
  * POST /api/auth/reset-password/verify
  * 인증 코드 확인

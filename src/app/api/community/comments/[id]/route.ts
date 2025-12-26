@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth/jwt'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 // 댓글 수정
 const updateCommentSchema = z.object({
   content: z.string().min(1).max(1000),

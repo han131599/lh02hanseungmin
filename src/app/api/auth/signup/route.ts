@@ -5,6 +5,8 @@ import { ZodError } from 'zod'
 import { hashPassword } from '@/lib/auth/password'
 import { generateToken } from '@/lib/auth/jwt'
 
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

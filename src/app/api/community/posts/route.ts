@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth/jwt'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 // 게시글 목록 조회
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +25,7 @@ export async function GET(request: NextRequest) {
               deletedAt: null,
             },
           },
+          likes: true,
         },
         orderBy: [
           { isPinned: 'desc' },
@@ -42,6 +45,9 @@ export async function GET(request: NextRequest) {
       posts: posts.map(post => ({
         ...post,
         commentCount: post.comments.length,
+        likeCount: post.likes.length,
+        comments: undefined,
+        likes: undefined,
       })),
       pagination: {
         page,

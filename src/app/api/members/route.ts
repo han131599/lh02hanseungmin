@@ -3,6 +3,8 @@ import { verifyToken } from '@/lib/auth/jwt'
 import { hashPassword } from '@/lib/auth/password'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 // GET /api/members - 회원 목록 조회
 export async function GET(request: NextRequest) {
   try {

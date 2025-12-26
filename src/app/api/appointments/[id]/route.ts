@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth/jwt'
 import prisma from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 // PATCH /api/appointments/[id] - 일정 수정
 export async function PATCH(
   request: NextRequest,
@@ -104,7 +106,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = verifyToken(token)
+    const user = await verifyToken(token)
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

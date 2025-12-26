@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth/password'
 
+export const runtime = 'nodejs'
+
 /**
  * POST /api/auth/reset-password/update
  * 비밀번호 업데이트

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateVerificationCode, sendVerificationEmail } from '@/lib/email'
 
+export const runtime = 'nodejs'
+
 /**
  * POST /api/auth/reset-password/request
  * 비밀번호 재설정 요청 - 이메일로 인증 코드 발송
